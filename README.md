@@ -1,7 +1,12 @@
-# Welcome to the Camunda Community Hub Repository Template!
+# BPMN ColorPicker Plugin
 
-## A project to empower our open source community extension maintainers, and encourage new contributors to get started contributing to the Camunda open source ecosystem.
+A very simple Color Picker as a plugin for the Camunda Modeler.
 
-If you are building a new Camunda Community extension, please follow the instructions detailed in our [Community Repository](https://github.com/camunda-community-hub/community). Once those steps have been completed, please feel free to make use of this repository to build your new extension from!
+## How it looks like
+![Screenshot](screenshot.png)
 
 
+## Installation
+Put this directory into the `plugins` directory of the Camunda Modeler and you're ready to go.
+
+If you're interested in how to create your own plugins see the [documentation](https://github.com/camunda/camunda-modeler/tree/547-plugins/docs/plugins) and this [example](https://github.com/camunda/camunda-modeler-plugin-example).
