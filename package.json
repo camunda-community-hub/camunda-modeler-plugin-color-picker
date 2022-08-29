@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/camunda/camunda-modeler-plugins#readme",
   "devDependencies": {
+    "bpmn-js": "^9.4.0",
     "camunda-modeler-plugin-helpers": "^1.7.0",
     "inherits": "^2.0.3",
     "min-dom": "^0.2.0",
