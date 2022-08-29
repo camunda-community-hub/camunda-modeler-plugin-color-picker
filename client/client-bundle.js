@@ -1,8 +1,17 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-'use strict';
+/******/ (() => { // webpackBootstrap
+/******/ 	var __webpack_modules__ = ({
 
-var domify = require('min-dom/lib/domify');
-var ColorPicker = require('simple-color-picker');
+/***/ "./client/ColorPlugin.js":
+/*!*******************************!*\
+  !*** ./client/ColorPlugin.js ***!
+  \*******************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var domify = __webpack_require__(/*! min-dom/lib/domify */ "./node_modules/min-dom/lib/domify.js");
+var ColorPicker = __webpack_require__(/*! simple-color-picker */ "./node_modules/simple-color-picker/src/index.js");
 
 function ColorPlugin(eventBus, bpmnRules, editorActions, canvas, commandStack) {
   var self = this;
@@ -86,14 +95,15 @@ module.exports = {
   colorPlugin: [ 'type', ColorPlugin ]
 };
 
-},{"min-dom/lib/domify":13,"simple-color-picker":15}],2:[function(require,module,exports){
-var registerBpmnJSPlugin = require('camunda-modeler-plugin-helpers').registerBpmnJSPlugin;
 
-var ColorPlugin = require('./ColorPlugin');
+/***/ }),
 
-registerBpmnJSPlugin(ColorPlugin);
+/***/ "./node_modules/camunda-modeler-plugin-helpers/index.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/camunda-modeler-plugin-helpers/index.js ***!
+  \**************************************************************/
+/***/ ((module) => {
 
-},{"./ColorPlugin":1,"camunda-modeler-plugin-helpers":3}],3:[function(require,module,exports){
 /**
  * Validate and register a client plugin.
  *
@@ -136,13 +146,21 @@ function registerBpmnJSPlugin(plugin) {
 
 module.exports.registerBpmnJSPlugin = registerBpmnJSPlugin;
 
-},{}],4:[function(require,module,exports){
+
+/***/ }),
+
+/***/ "./node_modules/component-emitter/index.js":
+/*!*************************************************!*\
+  !*** ./node_modules/component-emitter/index.js ***!
+  \*************************************************/
+/***/ ((module) => {
+
 
 /**
  * Expose `Emitter`.
  */
 
-if (typeof module !== 'undefined') {
+if (true) {
   module.exports = Emitter;
 }
 
@@ -250,6 +268,13 @@ Emitter.prototype.removeEventListener = function(event, fn){
       break;
     }
   }
+
+  // Remove event specific arrays for event types that no
+  // one is subscribed for to avoid memory leak.
+  if (callbacks.length === 0) {
+    delete this._callbacks['$' + event];
+  }
+
   return this;
 };
 
@@ -263,8 +288,13 @@ Emitter.prototype.removeEventListener = function(event, fn){
 
 Emitter.prototype.emit = function(event){
   this._callbacks = this._callbacks || {};
-  var args = [].slice.call(arguments, 1)
+
+  var args = new Array(arguments.length - 1)
     , callbacks = this._callbacks['$' + event];
+
+  for (var i = 1; i < arguments.length; i++) {
+    args[i - 1] = arguments[i];
+  }
 
   if (callbacks) {
     callbacks = callbacks.slice(0);
@@ -301,13 +331,22 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],5:[function(require,module,exports){
-'use strict';
 
-var prefix = require('prefix');
-var isArray = require('is-array');
-var properties = require('./lib/properties');
-var applyDefaultUnit = require('./lib/default-unit');
+/***/ }),
+
+/***/ "./node_modules/dom-transform/index.js":
+/*!*********************************************!*\
+  !*** ./node_modules/dom-transform/index.js ***!
+  \*********************************************/
+/***/ ((module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var prefix = __webpack_require__(/*! prefix */ "./node_modules/prefix/index.js");
+var isArray = __webpack_require__(/*! is-array */ "./node_modules/is-array/index.js");
+var properties = __webpack_require__(/*! ./lib/properties */ "./node_modules/dom-transform/lib/properties.js");
+var applyDefaultUnit = __webpack_require__(/*! ./lib/default-unit */ "./node_modules/dom-transform/lib/default-unit.js");
 
 var _has = Object.prototype.hasOwnProperty;
 var transformProp = prefix('transform');
@@ -440,10 +479,19 @@ function getPropertiesName() {
   });
 }
 
-},{"./lib/default-unit":6,"./lib/properties":7,"is-array":9,"prefix":14}],6:[function(require,module,exports){
-'use strict';
 
-var trim = require('trim');
+/***/ }),
+
+/***/ "./node_modules/dom-transform/lib/default-unit.js":
+/*!********************************************************!*\
+  !*** ./node_modules/dom-transform/lib/default-unit.js ***!
+  \********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var trim = __webpack_require__(/*! trim */ "./node_modules/trim/index.js");
 var NUMBER_REGEX = /^-?\d+(\.\d+)?$/;
 
 module.exports = function(value, unit, separator) {
@@ -470,8 +518,17 @@ module.exports = function(value, unit, separator) {
   }).join(separator);
 };
 
-},{"trim":17}],7:[function(require,module,exports){
-'use strict';
+
+/***/ }),
+
+/***/ "./node_modules/dom-transform/lib/properties.js":
+/*!******************************************************!*\
+  !*** ./node_modules/dom-transform/lib/properties.js ***!
+  \******************************************************/
+/***/ ((module) => {
+
+"use strict";
+
 
 module.exports = {
   transform: {
@@ -504,7 +561,15 @@ module.exports = {
   }
 };
 
-},{}],8:[function(require,module,exports){
+
+/***/ }),
+
+/***/ "./node_modules/domify/index.js":
+/*!**************************************!*\
+  !*** ./node_modules/domify/index.js ***!
+  \**************************************/
+/***/ ((module) => {
+
 
 /**
  * Expose `parse`.
@@ -596,7 +661,7 @@ function parse(html, doc) {
   }
 
   // wrap map
-  var wrap = map[tag] || map._default;
+  var wrap = Object.prototype.hasOwnProperty.call(map, tag) ? map[tag] : map._default;
   var depth = wrap[0];
   var prefix = wrap[1];
   var suffix = wrap[2];
@@ -618,7 +683,15 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],9:[function(require,module,exports){
+
+/***/ }),
+
+/***/ "./node_modules/is-array/index.js":
+/*!****************************************!*\
+  !*** ./node_modules/is-array/index.js ***!
+  \****************************************/
+/***/ ((module) => {
+
 
 /**
  * isArray
@@ -653,11 +726,19 @@ module.exports = isArray || function (val) {
   return !! val && '[object Array]' == str.call(val);
 };
 
-},{}],10:[function(require,module,exports){
+
+/***/ }),
+
+/***/ "./node_modules/is-buffer/index.js":
+/*!*****************************************!*\
+  !*** ./node_modules/is-buffer/index.js ***!
+  \*****************************************/
+/***/ ((module) => {
+
 /*!
  * Determine if an object is a Buffer
  *
- * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * @author   Feross Aboukhadijeh <https://feross.org>
  * @license  MIT
  */
 
@@ -676,7 +757,16 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],11:[function(require,module,exports){
+
+/***/ }),
+
+/***/ "./node_modules/is-number/index.js":
+/*!*****************************************!*\
+  !*** ./node_modules/is-number/index.js ***!
+  \*****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
 /*!
  * is-number <https://github.com/jonschlinkert/is-number>
  *
@@ -684,9 +774,9 @@ function isSlowBuffer (obj) {
  * Licensed under the MIT License.
  */
 
-'use strict';
 
-var typeOf = require('kind-of');
+
+var typeOf = __webpack_require__(/*! kind-of */ "./node_modules/kind-of/index.js");
 
 module.exports = function isNumber(num) {
   var type = typeOf(num);
@@ -700,8 +790,16 @@ module.exports = function isNumber(num) {
   return (num - num + 1) >= 0;
 };
 
-},{"kind-of":12}],12:[function(require,module,exports){
-var isBuffer = require('is-buffer');
+
+/***/ }),
+
+/***/ "./node_modules/kind-of/index.js":
+/*!***************************************!*\
+  !*** ./node_modules/kind-of/index.js ***!
+  \***************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var isBuffer = __webpack_require__(/*! is-buffer */ "./node_modules/is-buffer/index.js");
 var toString = Object.prototype.toString;
 
 /**
@@ -818,9 +916,25 @@ module.exports = function kindOf(val) {
   return 'object';
 };
 
-},{"is-buffer":10}],13:[function(require,module,exports){
-module.exports = require('domify');
-},{"domify":8}],14:[function(require,module,exports){
+
+/***/ }),
+
+/***/ "./node_modules/min-dom/lib/domify.js":
+/*!********************************************!*\
+  !*** ./node_modules/min-dom/lib/domify.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+module.exports = __webpack_require__(/*! domify */ "./node_modules/domify/index.js");
+
+/***/ }),
+
+/***/ "./node_modules/prefix/index.js":
+/*!**************************************!*\
+  !*** ./node_modules/prefix/index.js ***!
+  \**************************************/
+/***/ ((module) => {
+
 // check document first so it doesn't error in node.js
 var style = typeof document != 'undefined'
   ? document.createElement('p').style
@@ -891,15 +1005,24 @@ function prefixDashed(key){
 module.exports = prefixMemozied
 module.exports.dash = prefixDashed
 
-},{}],15:[function(require,module,exports){
-'use strict';
+
+/***/ }),
+
+/***/ "./node_modules/simple-color-picker/src/index.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/simple-color-picker/src/index.js ***!
+  \*******************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
 
 (function() {
 
-var Emitter = require('component-emitter');
-var isNumber = require('is-number');
-var tinycolor = require('tinycolor2');
-var transform = require('dom-transform');
+var Emitter = __webpack_require__(/*! component-emitter */ "./node_modules/component-emitter/index.js");
+var isNumber = __webpack_require__(/*! is-number */ "./node_modules/is-number/index.js");
+var tinycolor = __webpack_require__(/*! tinycolor2 */ "./node_modules/tinycolor2/tinycolor.js");
+var transform = __webpack_require__(/*! dom-transform */ "./node_modules/dom-transform/index.js");
 
 /**
  * Creates a new SimpleColorPicker
@@ -1289,14 +1412,22 @@ function numberToHex(color) {
   return color = '#' + ('00000' + (color | 0).toString(16)).substr(-6);
 }
 
-if (typeof module !== 'undefined' && module.exports) {
+if ( true && module.exports) {
   module.exports = SimpleColorPicker;
 }
 
 })();
 
-},{"component-emitter":4,"dom-transform":5,"is-number":11,"tinycolor2":16}],16:[function(require,module,exports){
-// TinyColor v1.4.1
+
+/***/ }),
+
+/***/ "./node_modules/tinycolor2/tinycolor.js":
+/*!**********************************************!*\
+  !*** ./node_modules/tinycolor2/tinycolor.js ***!
+  \**********************************************/
+/***/ ((module, exports, __webpack_require__) => {
+
+var __WEBPACK_AMD_DEFINE_RESULT__;// TinyColor v1.4.2
 // https://github.com/bgrins/TinyColor
 // Brian Grinstead, MIT License
 
@@ -2478,21 +2609,28 @@ function validateWCAG2Parms(parms) {
 }
 
 // Node: Export function
-if (typeof module !== "undefined" && module.exports) {
+if ( true && module.exports) {
     module.exports = tinycolor;
 }
 // AMD/requirejs: Define the module
-else if (typeof define === 'function' && define.amd) {
-    define(function () {return tinycolor;});
+else if (true) {
+    !(__WEBPACK_AMD_DEFINE_RESULT__ = (function () {return tinycolor;}).call(exports, __webpack_require__, exports, module),
+		__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 }
 // Browser: Expose to window
-else {
-    window.tinycolor = tinycolor;
-}
+else {}
 
 })(Math);
 
-},{}],17:[function(require,module,exports){
+
+/***/ }),
+
+/***/ "./node_modules/trim/index.js":
+/*!************************************!*\
+  !*** ./node_modules/trim/index.js ***!
+  \************************************/
+/***/ ((module, exports) => {
+
 
 exports = module.exports = trim;
 
@@ -2508,4 +2646,49 @@ exports.right = function(str){
   return str.replace(/\s*$/, '');
 };
 
-},{}]},{},[2]);
+
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+(() => {
+/*!**************************!*\
+  !*** ./client/client.js ***!
+  \**************************/
+var registerBpmnJSPlugin = (__webpack_require__(/*! camunda-modeler-plugin-helpers */ "./node_modules/camunda-modeler-plugin-helpers/index.js").registerBpmnJSPlugin);
+
+var ColorPlugin = __webpack_require__(/*! ./ColorPlugin */ "./client/ColorPlugin.js");
+
+registerBpmnJSPlugin(ColorPlugin);
+
+})();
+
+/******/ })()
+;
