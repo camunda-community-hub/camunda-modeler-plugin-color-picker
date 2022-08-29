@@ -1,8 +1,18 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-'use strict';
+/******/ (() => { // webpackBootstrap
+/******/ 	var __webpack_modules__ = ({
 
-var domify = require('min-dom/lib/domify');
-var ColorPicker = require('simple-color-picker');
+/***/ "./client/ColorPlugin.js":
+/*!*******************************!*\
+  !*** ./client/ColorPlugin.js ***!
+  \*******************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var domify = __webpack_require__(/*! min-dom/lib/domify */ "./node_modules/min-dom/lib/domify.js");
+var ColorPicker = __webpack_require__(/*! simple-color-picker */ "./node_modules/simple-color-picker/src/index.js");
+var getDi = (__webpack_require__(/*! bpmn-js/lib/util/ModelUtil */ "./node_modules/bpmn-js/lib/util/ModelUtil.js").getDi);
 
 function ColorPlugin(eventBus, bpmnRules, editorActions, canvas, commandStack) {
   var self = this;
@@ -24,12 +34,10 @@ function ColorPlugin(eventBus, bpmnRules, editorActions, canvas, commandStack) {
 }
 
 ColorPlugin.prototype._getColor = function(element) {
-  if (element != null && element.businessObject != null) {
-    var businessObject = element.businessObject;
-    if (businessObject.di != null && businessObject.di.fill != null) {
-      return businessObject.di.fill;
-      self.colorPicker.setColor(businessObject.di.fill);
-    }
+  if (element != null) {
+    var di = getDi(element);
+
+    return di && di.get('fill') || null;
   }
   return null;
 }
@@ -86,14 +94,86 @@ module.exports = {
   colorPlugin: [ 'type', ColorPlugin ]
 };
 
-},{"min-dom/lib/domify":13,"simple-color-picker":15}],2:[function(require,module,exports){
-var registerBpmnJSPlugin = require('camunda-modeler-plugin-helpers').registerBpmnJSPlugin;
 
-var ColorPlugin = require('./ColorPlugin');
+/***/ }),
 
-registerBpmnJSPlugin(ColorPlugin);
+/***/ "./node_modules/bpmn-js/lib/util/ModelUtil.js":
+/*!****************************************************!*\
+  !*** ./node_modules/bpmn-js/lib/util/ModelUtil.js ***!
+  \****************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-},{"./ColorPlugin":1,"camunda-modeler-plugin-helpers":3}],3:[function(require,module,exports){
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "getBusinessObject": () => (/* binding */ getBusinessObject),
+/* harmony export */   "getDi": () => (/* binding */ getDi),
+/* harmony export */   "is": () => (/* binding */ is),
+/* harmony export */   "isAny": () => (/* binding */ isAny)
+/* harmony export */ });
+/* harmony import */ var min_dash__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! min-dash */ "./node_modules/min-dash/dist/index.esm.js");
+
+
+
+/**
+ * Is an element of the given BPMN type?
+ *
+ * @param  {djs.model.Base|ModdleElement} element
+ * @param  {string} type
+ *
+ * @return {boolean}
+ */
+function is(element, type) {
+  var bo = getBusinessObject(element);
+
+  return bo && (typeof bo.$instanceOf === 'function') && bo.$instanceOf(type);
+}
+
+
+/**
+ * Return true if element has any of the given types.
+ *
+ * @param {djs.model.Base} element
+ * @param {Array<string>} types
+ *
+ * @return {boolean}
+ */
+function isAny(element, types) {
+  return (0,min_dash__WEBPACK_IMPORTED_MODULE_0__.some)(types, function(t) {
+    return is(element, t);
+  });
+}
+
+/**
+ * Return the business object for a given element.
+ *
+ * @param  {djs.model.Base|ModdleElement} element
+ *
+ * @return {ModdleElement}
+ */
+function getBusinessObject(element) {
+  return (element && element.businessObject) || element;
+}
+
+/**
+ * Return the di object for a given element.
+ *
+ * @param  {djs.model.Base} element
+ *
+ * @return {ModdleElement}
+ */
+function getDi(element) {
+  return element && element.di;
+}
+
+/***/ }),
+
+/***/ "./node_modules/camunda-modeler-plugin-helpers/index.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/camunda-modeler-plugin-helpers/index.js ***!
+  \**************************************************************/
+/***/ ((module) => {
+
 /**
  * Validate and register a client plugin.
  *
@@ -136,13 +216,21 @@ function registerBpmnJSPlugin(plugin) {
 
 module.exports.registerBpmnJSPlugin = registerBpmnJSPlugin;
 
-},{}],4:[function(require,module,exports){
+
+/***/ }),
+
+/***/ "./node_modules/component-emitter/index.js":
+/*!*************************************************!*\
+  !*** ./node_modules/component-emitter/index.js ***!
+  \*************************************************/
+/***/ ((module) => {
+
 
 /**
  * Expose `Emitter`.
  */
 
-if (typeof module !== 'undefined') {
+if (true) {
   module.exports = Emitter;
 }
 
@@ -250,6 +338,13 @@ Emitter.prototype.removeEventListener = function(event, fn){
       break;
     }
   }
+
+  // Remove event specific arrays for event types that no
+  // one is subscribed for to avoid memory leak.
+  if (callbacks.length === 0) {
+    delete this._callbacks['$' + event];
+  }
+
   return this;
 };
 
@@ -263,8 +358,13 @@ Emitter.prototype.removeEventListener = function(event, fn){
 
 Emitter.prototype.emit = function(event){
   this._callbacks = this._callbacks || {};
-  var args = [].slice.call(arguments, 1)
+
+  var args = new Array(arguments.length - 1)
     , callbacks = this._callbacks['$' + event];
+
+  for (var i = 1; i < arguments.length; i++) {
+    args[i - 1] = arguments[i];
+  }
 
   if (callbacks) {
     callbacks = callbacks.slice(0);
@@ -301,13 +401,22 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],5:[function(require,module,exports){
-'use strict';
 
-var prefix = require('prefix');
-var isArray = require('is-array');
-var properties = require('./lib/properties');
-var applyDefaultUnit = require('./lib/default-unit');
+/***/ }),
+
+/***/ "./node_modules/dom-transform/index.js":
+/*!*********************************************!*\
+  !*** ./node_modules/dom-transform/index.js ***!
+  \*********************************************/
+/***/ ((module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var prefix = __webpack_require__(/*! prefix */ "./node_modules/prefix/index.js");
+var isArray = __webpack_require__(/*! is-array */ "./node_modules/is-array/index.js");
+var properties = __webpack_require__(/*! ./lib/properties */ "./node_modules/dom-transform/lib/properties.js");
+var applyDefaultUnit = __webpack_require__(/*! ./lib/default-unit */ "./node_modules/dom-transform/lib/default-unit.js");
 
 var _has = Object.prototype.hasOwnProperty;
 var transformProp = prefix('transform');
@@ -440,10 +549,19 @@ function getPropertiesName() {
   });
 }
 
-},{"./lib/default-unit":6,"./lib/properties":7,"is-array":9,"prefix":14}],6:[function(require,module,exports){
-'use strict';
 
-var trim = require('trim');
+/***/ }),
+
+/***/ "./node_modules/dom-transform/lib/default-unit.js":
+/*!********************************************************!*\
+  !*** ./node_modules/dom-transform/lib/default-unit.js ***!
+  \********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var trim = __webpack_require__(/*! trim */ "./node_modules/trim/index.js");
 var NUMBER_REGEX = /^-?\d+(\.\d+)?$/;
 
 module.exports = function(value, unit, separator) {
@@ -470,8 +588,17 @@ module.exports = function(value, unit, separator) {
   }).join(separator);
 };
 
-},{"trim":17}],7:[function(require,module,exports){
-'use strict';
+
+/***/ }),
+
+/***/ "./node_modules/dom-transform/lib/properties.js":
+/*!******************************************************!*\
+  !*** ./node_modules/dom-transform/lib/properties.js ***!
+  \******************************************************/
+/***/ ((module) => {
+
+"use strict";
+
 
 module.exports = {
   transform: {
@@ -504,7 +631,15 @@ module.exports = {
   }
 };
 
-},{}],8:[function(require,module,exports){
+
+/***/ }),
+
+/***/ "./node_modules/domify/index.js":
+/*!**************************************!*\
+  !*** ./node_modules/domify/index.js ***!
+  \**************************************/
+/***/ ((module) => {
+
 
 /**
  * Expose `parse`.
@@ -596,7 +731,7 @@ function parse(html, doc) {
   }
 
   // wrap map
-  var wrap = map[tag] || map._default;
+  var wrap = Object.prototype.hasOwnProperty.call(map, tag) ? map[tag] : map._default;
   var depth = wrap[0];
   var prefix = wrap[1];
   var suffix = wrap[2];
@@ -618,7 +753,15 @@ function parse(html, doc) {
   return fragment;
 }
 
-},{}],9:[function(require,module,exports){
+
+/***/ }),
+
+/***/ "./node_modules/is-array/index.js":
+/*!****************************************!*\
+  !*** ./node_modules/is-array/index.js ***!
+  \****************************************/
+/***/ ((module) => {
+
 
 /**
  * isArray
@@ -653,11 +796,19 @@ module.exports = isArray || function (val) {
   return !! val && '[object Array]' == str.call(val);
 };
 
-},{}],10:[function(require,module,exports){
+
+/***/ }),
+
+/***/ "./node_modules/is-buffer/index.js":
+/*!*****************************************!*\
+  !*** ./node_modules/is-buffer/index.js ***!
+  \*****************************************/
+/***/ ((module) => {
+
 /*!
  * Determine if an object is a Buffer
  *
- * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * @author   Feross Aboukhadijeh <https://feross.org>
  * @license  MIT
  */
 
@@ -676,7 +827,16 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],11:[function(require,module,exports){
+
+/***/ }),
+
+/***/ "./node_modules/is-number/index.js":
+/*!*****************************************!*\
+  !*** ./node_modules/is-number/index.js ***!
+  \*****************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
 /*!
  * is-number <https://github.com/jonschlinkert/is-number>
  *
@@ -684,9 +844,9 @@ function isSlowBuffer (obj) {
  * Licensed under the MIT License.
  */
 
-'use strict';
 
-var typeOf = require('kind-of');
+
+var typeOf = __webpack_require__(/*! kind-of */ "./node_modules/kind-of/index.js");
 
 module.exports = function isNumber(num) {
   var type = typeOf(num);
@@ -700,8 +860,16 @@ module.exports = function isNumber(num) {
   return (num - num + 1) >= 0;
 };
 
-},{"kind-of":12}],12:[function(require,module,exports){
-var isBuffer = require('is-buffer');
+
+/***/ }),
+
+/***/ "./node_modules/kind-of/index.js":
+/*!***************************************!*\
+  !*** ./node_modules/kind-of/index.js ***!
+  \***************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var isBuffer = __webpack_require__(/*! is-buffer */ "./node_modules/is-buffer/index.js");
 var toString = Object.prototype.toString;
 
 /**
@@ -818,9 +986,770 @@ module.exports = function kindOf(val) {
   return 'object';
 };
 
-},{"is-buffer":10}],13:[function(require,module,exports){
-module.exports = require('domify');
-},{"domify":8}],14:[function(require,module,exports){
+
+/***/ }),
+
+/***/ "./node_modules/min-dash/dist/index.esm.js":
+/*!*************************************************!*\
+  !*** ./node_modules/min-dash/dist/index.esm.js ***!
+  \*************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "assign": () => (/* binding */ assign),
+/* harmony export */   "bind": () => (/* binding */ bind),
+/* harmony export */   "debounce": () => (/* binding */ debounce),
+/* harmony export */   "ensureArray": () => (/* binding */ ensureArray),
+/* harmony export */   "every": () => (/* binding */ every),
+/* harmony export */   "filter": () => (/* binding */ filter),
+/* harmony export */   "find": () => (/* binding */ find),
+/* harmony export */   "findIndex": () => (/* binding */ findIndex),
+/* harmony export */   "flatten": () => (/* binding */ flatten),
+/* harmony export */   "forEach": () => (/* binding */ forEach),
+/* harmony export */   "get": () => (/* binding */ get),
+/* harmony export */   "groupBy": () => (/* binding */ groupBy),
+/* harmony export */   "has": () => (/* binding */ has),
+/* harmony export */   "isArray": () => (/* binding */ isArray),
+/* harmony export */   "isDefined": () => (/* binding */ isDefined),
+/* harmony export */   "isFunction": () => (/* binding */ isFunction),
+/* harmony export */   "isNil": () => (/* binding */ isNil),
+/* harmony export */   "isNumber": () => (/* binding */ isNumber),
+/* harmony export */   "isObject": () => (/* binding */ isObject),
+/* harmony export */   "isString": () => (/* binding */ isString),
+/* harmony export */   "isUndefined": () => (/* binding */ isUndefined),
+/* harmony export */   "keys": () => (/* binding */ keys),
+/* harmony export */   "map": () => (/* binding */ map),
+/* harmony export */   "matchPattern": () => (/* binding */ matchPattern),
+/* harmony export */   "merge": () => (/* binding */ merge),
+/* harmony export */   "omit": () => (/* binding */ omit),
+/* harmony export */   "pick": () => (/* binding */ pick),
+/* harmony export */   "reduce": () => (/* binding */ reduce),
+/* harmony export */   "set": () => (/* binding */ set),
+/* harmony export */   "size": () => (/* binding */ size),
+/* harmony export */   "some": () => (/* binding */ some),
+/* harmony export */   "sortBy": () => (/* binding */ sortBy),
+/* harmony export */   "throttle": () => (/* binding */ throttle),
+/* harmony export */   "unionBy": () => (/* binding */ unionBy),
+/* harmony export */   "uniqueBy": () => (/* binding */ uniqueBy),
+/* harmony export */   "values": () => (/* binding */ values),
+/* harmony export */   "without": () => (/* binding */ without)
+/* harmony export */ });
+/**
+ * Flatten array, one level deep.
+ *
+ * @param {Array<?>} arr
+ *
+ * @return {Array<?>}
+ */
+function flatten(arr) {
+  return Array.prototype.concat.apply([], arr);
+}
+
+var nativeToString = Object.prototype.toString;
+var nativeHasOwnProperty = Object.prototype.hasOwnProperty;
+function isUndefined(obj) {
+  return obj === undefined;
+}
+function isDefined(obj) {
+  return obj !== undefined;
+}
+function isNil(obj) {
+  return obj == null;
+}
+function isArray(obj) {
+  return nativeToString.call(obj) === '[object Array]';
+}
+function isObject(obj) {
+  return nativeToString.call(obj) === '[object Object]';
+}
+function isNumber(obj) {
+  return nativeToString.call(obj) === '[object Number]';
+}
+function isFunction(obj) {
+  var tag = nativeToString.call(obj);
+  return tag === '[object Function]' || tag === '[object AsyncFunction]' || tag === '[object GeneratorFunction]' || tag === '[object AsyncGeneratorFunction]' || tag === '[object Proxy]';
+}
+function isString(obj) {
+  return nativeToString.call(obj) === '[object String]';
+}
+/**
+ * Ensure collection is an array.
+ *
+ * @param {Object} obj
+ */
+
+function ensureArray(obj) {
+  if (isArray(obj)) {
+    return;
+  }
+
+  throw new Error('must supply array');
+}
+/**
+ * Return true, if target owns a property with the given key.
+ *
+ * @param {Object} target
+ * @param {String} key
+ *
+ * @return {Boolean}
+ */
+
+function has(target, key) {
+  return nativeHasOwnProperty.call(target, key);
+}
+
+/**
+ * Find element in collection.
+ *
+ * @param  {Array|Object} collection
+ * @param  {Function|Object} matcher
+ *
+ * @return {Object}
+ */
+
+function find(collection, matcher) {
+  matcher = toMatcher(matcher);
+  var match;
+  forEach(collection, function (val, key) {
+    if (matcher(val, key)) {
+      match = val;
+      return false;
+    }
+  });
+  return match;
+}
+/**
+ * Find element index in collection.
+ *
+ * @param  {Array|Object} collection
+ * @param  {Function} matcher
+ *
+ * @return {Object}
+ */
+
+function findIndex(collection, matcher) {
+  matcher = toMatcher(matcher);
+  var idx = isArray(collection) ? -1 : undefined;
+  forEach(collection, function (val, key) {
+    if (matcher(val, key)) {
+      idx = key;
+      return false;
+    }
+  });
+  return idx;
+}
+/**
+ * Find element in collection.
+ *
+ * @param  {Array|Object} collection
+ * @param  {Function} matcher
+ *
+ * @return {Array} result
+ */
+
+function filter(collection, matcher) {
+  var result = [];
+  forEach(collection, function (val, key) {
+    if (matcher(val, key)) {
+      result.push(val);
+    }
+  });
+  return result;
+}
+/**
+ * Iterate over collection; returning something
+ * (non-undefined) will stop iteration.
+ *
+ * @param  {Array|Object} collection
+ * @param  {Function} iterator
+ *
+ * @return {Object} return result that stopped the iteration
+ */
+
+function forEach(collection, iterator) {
+  var val, result;
+
+  if (isUndefined(collection)) {
+    return;
+  }
+
+  var convertKey = isArray(collection) ? toNum : identity;
+
+  for (var key in collection) {
+    if (has(collection, key)) {
+      val = collection[key];
+      result = iterator(val, convertKey(key));
+
+      if (result === false) {
+        return val;
+      }
+    }
+  }
+}
+/**
+ * Return collection without element.
+ *
+ * @param  {Array} arr
+ * @param  {Function} matcher
+ *
+ * @return {Array}
+ */
+
+function without(arr, matcher) {
+  if (isUndefined(arr)) {
+    return [];
+  }
+
+  ensureArray(arr);
+  matcher = toMatcher(matcher);
+  return arr.filter(function (el, idx) {
+    return !matcher(el, idx);
+  });
+}
+/**
+ * Reduce collection, returning a single result.
+ *
+ * @param  {Object|Array} collection
+ * @param  {Function} iterator
+ * @param  {Any} result
+ *
+ * @return {Any} result returned from last iterator
+ */
+
+function reduce(collection, iterator, result) {
+  forEach(collection, function (value, idx) {
+    result = iterator(result, value, idx);
+  });
+  return result;
+}
+/**
+ * Return true if every element in the collection
+ * matches the criteria.
+ *
+ * @param  {Object|Array} collection
+ * @param  {Function} matcher
+ *
+ * @return {Boolean}
+ */
+
+function every(collection, matcher) {
+  return !!reduce(collection, function (matches, val, key) {
+    return matches && matcher(val, key);
+  }, true);
+}
+/**
+ * Return true if some elements in the collection
+ * match the criteria.
+ *
+ * @param  {Object|Array} collection
+ * @param  {Function} matcher
+ *
+ * @return {Boolean}
+ */
+
+function some(collection, matcher) {
+  return !!find(collection, matcher);
+}
+/**
+ * Transform a collection into another collection
+ * by piping each member through the given fn.
+ *
+ * @param  {Object|Array}   collection
+ * @param  {Function} fn
+ *
+ * @return {Array} transformed collection
+ */
+
+function map(collection, fn) {
+  var result = [];
+  forEach(collection, function (val, key) {
+    result.push(fn(val, key));
+  });
+  return result;
+}
+/**
+ * Get the collections keys.
+ *
+ * @param  {Object|Array} collection
+ *
+ * @return {Array}
+ */
+
+function keys(collection) {
+  return collection && Object.keys(collection) || [];
+}
+/**
+ * Shorthand for `keys(o).length`.
+ *
+ * @param  {Object|Array} collection
+ *
+ * @return {Number}
+ */
+
+function size(collection) {
+  return keys(collection).length;
+}
+/**
+ * Get the values in the collection.
+ *
+ * @param  {Object|Array} collection
+ *
+ * @return {Array}
+ */
+
+function values(collection) {
+  return map(collection, function (val) {
+    return val;
+  });
+}
+/**
+ * Group collection members by attribute.
+ *
+ * @param  {Object|Array} collection
+ * @param  {Function} extractor
+ *
+ * @return {Object} map with { attrValue => [ a, b, c ] }
+ */
+
+function groupBy(collection, extractor) {
+  var grouped = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  extractor = toExtractor(extractor);
+  forEach(collection, function (val) {
+    var discriminator = extractor(val) || '_';
+    var group = grouped[discriminator];
+
+    if (!group) {
+      group = grouped[discriminator] = [];
+    }
+
+    group.push(val);
+  });
+  return grouped;
+}
+function uniqueBy(extractor) {
+  extractor = toExtractor(extractor);
+  var grouped = {};
+
+  for (var _len = arguments.length, collections = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    collections[_key - 1] = arguments[_key];
+  }
+
+  forEach(collections, function (c) {
+    return groupBy(c, extractor, grouped);
+  });
+  var result = map(grouped, function (val, key) {
+    return val[0];
+  });
+  return result;
+}
+var unionBy = uniqueBy;
+/**
+ * Sort collection by criteria.
+ *
+ * @param  {Object|Array} collection
+ * @param  {String|Function} extractor
+ *
+ * @return {Array}
+ */
+
+function sortBy(collection, extractor) {
+  extractor = toExtractor(extractor);
+  var sorted = [];
+  forEach(collection, function (value, key) {
+    var disc = extractor(value, key);
+    var entry = {
+      d: disc,
+      v: value
+    };
+
+    for (var idx = 0; idx < sorted.length; idx++) {
+      var d = sorted[idx].d;
+
+      if (disc < d) {
+        sorted.splice(idx, 0, entry);
+        return;
+      }
+    } // not inserted, append (!)
+
+
+    sorted.push(entry);
+  });
+  return map(sorted, function (e) {
+    return e.v;
+  });
+}
+/**
+ * Create an object pattern matcher.
+ *
+ * @example
+ *
+ * const matcher = matchPattern({ id: 1 });
+ *
+ * let element = find(elements, matcher);
+ *
+ * @param  {Object} pattern
+ *
+ * @return {Function} matcherFn
+ */
+
+function matchPattern(pattern) {
+  return function (el) {
+    return every(pattern, function (val, key) {
+      return el[key] === val;
+    });
+  };
+}
+
+function toExtractor(extractor) {
+  return isFunction(extractor) ? extractor : function (e) {
+    return e[extractor];
+  };
+}
+
+function toMatcher(matcher) {
+  return isFunction(matcher) ? matcher : function (e) {
+    return e === matcher;
+  };
+}
+
+function identity(arg) {
+  return arg;
+}
+
+function toNum(arg) {
+  return Number(arg);
+}
+
+/**
+ * Debounce fn, calling it only once if the given time
+ * elapsed between calls.
+ *
+ * Lodash-style the function exposes methods to `#clear`
+ * and `#flush` to control internal behavior.
+ *
+ * @param  {Function} fn
+ * @param  {Number} timeout
+ *
+ * @return {Function} debounced function
+ */
+function debounce(fn, timeout) {
+  var timer;
+  var lastArgs;
+  var lastThis;
+  var lastNow;
+
+  function fire(force) {
+    var now = Date.now();
+    var scheduledDiff = force ? 0 : lastNow + timeout - now;
+
+    if (scheduledDiff > 0) {
+      return schedule(scheduledDiff);
+    }
+
+    fn.apply(lastThis, lastArgs);
+    clear();
+  }
+
+  function schedule(timeout) {
+    timer = setTimeout(fire, timeout);
+  }
+
+  function clear() {
+    if (timer) {
+      clearTimeout(timer);
+    }
+
+    timer = lastNow = lastArgs = lastThis = undefined;
+  }
+
+  function flush() {
+    if (timer) {
+      fire(true);
+    }
+
+    clear();
+  }
+
+  function callback() {
+    lastNow = Date.now();
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    lastArgs = args;
+    lastThis = this; // ensure an execution is scheduled
+
+    if (!timer) {
+      schedule(timeout);
+    }
+  }
+
+  callback.flush = flush;
+  callback.cancel = clear;
+  return callback;
+}
+/**
+ * Throttle fn, calling at most once
+ * in the given interval.
+ *
+ * @param  {Function} fn
+ * @param  {Number} interval
+ *
+ * @return {Function} throttled function
+ */
+
+function throttle(fn, interval) {
+  var throttling = false;
+  return function () {
+    if (throttling) {
+      return;
+    }
+
+    fn.apply(void 0, arguments);
+    throttling = true;
+    setTimeout(function () {
+      throttling = false;
+    }, interval);
+  };
+}
+/**
+ * Bind function against target <this>.
+ *
+ * @param  {Function} fn
+ * @param  {Object}   target
+ *
+ * @return {Function} bound function
+ */
+
+function bind(fn, target) {
+  return fn.bind(target);
+}
+
+function _typeof(obj) {
+  "@babel/helpers - typeof";
+
+  if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+    _typeof = function (obj) {
+      return typeof obj;
+    };
+  } else {
+    _typeof = function (obj) {
+      return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+    };
+  }
+
+  return _typeof(obj);
+}
+
+function _extends() {
+  _extends = Object.assign || function (target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i];
+
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
+    }
+
+    return target;
+  };
+
+  return _extends.apply(this, arguments);
+}
+
+/**
+ * Convenience wrapper for `Object.assign`.
+ *
+ * @param {Object} target
+ * @param {...Object} others
+ *
+ * @return {Object} the target
+ */
+
+function assign(target) {
+  for (var _len = arguments.length, others = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    others[_key - 1] = arguments[_key];
+  }
+
+  return _extends.apply(void 0, [target].concat(others));
+}
+/**
+ * Sets a nested property of a given object to the specified value.
+ *
+ * This mutates the object and returns it.
+ *
+ * @param {Object} target The target of the set operation.
+ * @param {(string|number)[]} path The path to the nested value.
+ * @param {any} value The value to set.
+ */
+
+function set(target, path, value) {
+  var currentTarget = target;
+  forEach(path, function (key, idx) {
+    if (typeof key !== 'number' && typeof key !== 'string') {
+      throw new Error('illegal key type: ' + _typeof(key) + '. Key should be of type number or string.');
+    }
+
+    if (key === 'constructor') {
+      throw new Error('illegal key: constructor');
+    }
+
+    if (key === '__proto__') {
+      throw new Error('illegal key: __proto__');
+    }
+
+    var nextKey = path[idx + 1];
+    var nextTarget = currentTarget[key];
+
+    if (isDefined(nextKey) && isNil(nextTarget)) {
+      nextTarget = currentTarget[key] = isNaN(+nextKey) ? {} : [];
+    }
+
+    if (isUndefined(nextKey)) {
+      if (isUndefined(value)) {
+        delete currentTarget[key];
+      } else {
+        currentTarget[key] = value;
+      }
+    } else {
+      currentTarget = nextTarget;
+    }
+  });
+  return target;
+}
+/**
+ * Gets a nested property of a given object.
+ *
+ * @param {Object} target The target of the get operation.
+ * @param {(string|number)[]} path The path to the nested value.
+ * @param {any} [defaultValue] The value to return if no value exists.
+ */
+
+function get(target, path, defaultValue) {
+  var currentTarget = target;
+  forEach(path, function (key) {
+    // accessing nil property yields <undefined>
+    if (isNil(currentTarget)) {
+      currentTarget = undefined;
+      return false;
+    }
+
+    currentTarget = currentTarget[key];
+  });
+  return isUndefined(currentTarget) ? defaultValue : currentTarget;
+}
+/**
+ * Pick given properties from the target object.
+ *
+ * @param {Object} target
+ * @param {Array} properties
+ *
+ * @return {Object} target
+ */
+
+function pick(target, properties) {
+  var result = {};
+  var obj = Object(target);
+  forEach(properties, function (prop) {
+    if (prop in obj) {
+      result[prop] = target[prop];
+    }
+  });
+  return result;
+}
+/**
+ * Pick all target properties, excluding the given ones.
+ *
+ * @param {Object} target
+ * @param {Array} properties
+ *
+ * @return {Object} target
+ */
+
+function omit(target, properties) {
+  var result = {};
+  var obj = Object(target);
+  forEach(obj, function (prop, key) {
+    if (properties.indexOf(key) === -1) {
+      result[key] = prop;
+    }
+  });
+  return result;
+}
+/**
+ * Recursively merge `...sources` into given target.
+ *
+ * Does support merging objects; does not support merging arrays.
+ *
+ * @param {Object} target
+ * @param {...Object} sources
+ *
+ * @return {Object} the target
+ */
+
+function merge(target) {
+  for (var _len2 = arguments.length, sources = new Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+    sources[_key2 - 1] = arguments[_key2];
+  }
+
+  if (!sources.length) {
+    return target;
+  }
+
+  forEach(sources, function (source) {
+    // skip non-obj sources, i.e. null
+    if (!source || !isObject(source)) {
+      return;
+    }
+
+    forEach(source, function (sourceVal, key) {
+      if (key === '__proto__') {
+        return;
+      }
+
+      var targetVal = target[key];
+
+      if (isObject(sourceVal)) {
+        if (!isObject(targetVal)) {
+          // override target[key] with object
+          targetVal = {};
+        }
+
+        target[key] = merge(targetVal, sourceVal);
+      } else {
+        target[key] = sourceVal;
+      }
+    });
+  });
+  return target;
+}
+
+
+
+
+/***/ }),
+
+/***/ "./node_modules/min-dom/lib/domify.js":
+/*!********************************************!*\
+  !*** ./node_modules/min-dom/lib/domify.js ***!
+  \********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+module.exports = __webpack_require__(/*! domify */ "./node_modules/domify/index.js");
+
+/***/ }),
+
+/***/ "./node_modules/prefix/index.js":
+/*!**************************************!*\
+  !*** ./node_modules/prefix/index.js ***!
+  \**************************************/
+/***/ ((module) => {
+
 // check document first so it doesn't error in node.js
 var style = typeof document != 'undefined'
   ? document.createElement('p').style
@@ -891,15 +1820,24 @@ function prefixDashed(key){
 module.exports = prefixMemozied
 module.exports.dash = prefixDashed
 
-},{}],15:[function(require,module,exports){
-'use strict';
+
+/***/ }),
+
+/***/ "./node_modules/simple-color-picker/src/index.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/simple-color-picker/src/index.js ***!
+  \*******************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
 
 (function() {
 
-var Emitter = require('component-emitter');
-var isNumber = require('is-number');
-var tinycolor = require('tinycolor2');
-var transform = require('dom-transform');
+var Emitter = __webpack_require__(/*! component-emitter */ "./node_modules/component-emitter/index.js");
+var isNumber = __webpack_require__(/*! is-number */ "./node_modules/is-number/index.js");
+var tinycolor = __webpack_require__(/*! tinycolor2 */ "./node_modules/tinycolor2/tinycolor.js");
+var transform = __webpack_require__(/*! dom-transform */ "./node_modules/dom-transform/index.js");
 
 /**
  * Creates a new SimpleColorPicker
@@ -1289,14 +2227,22 @@ function numberToHex(color) {
   return color = '#' + ('00000' + (color | 0).toString(16)).substr(-6);
 }
 
-if (typeof module !== 'undefined' && module.exports) {
+if ( true && module.exports) {
   module.exports = SimpleColorPicker;
 }
 
 })();
 
-},{"component-emitter":4,"dom-transform":5,"is-number":11,"tinycolor2":16}],16:[function(require,module,exports){
-// TinyColor v1.4.1
+
+/***/ }),
+
+/***/ "./node_modules/tinycolor2/tinycolor.js":
+/*!**********************************************!*\
+  !*** ./node_modules/tinycolor2/tinycolor.js ***!
+  \**********************************************/
+/***/ ((module, exports, __webpack_require__) => {
+
+var __WEBPACK_AMD_DEFINE_RESULT__;// TinyColor v1.4.2
 // https://github.com/bgrins/TinyColor
 // Brian Grinstead, MIT License
 
@@ -2478,21 +3424,28 @@ function validateWCAG2Parms(parms) {
 }
 
 // Node: Export function
-if (typeof module !== "undefined" && module.exports) {
+if ( true && module.exports) {
     module.exports = tinycolor;
 }
 // AMD/requirejs: Define the module
-else if (typeof define === 'function' && define.amd) {
-    define(function () {return tinycolor;});
+else if (true) {
+    !(__WEBPACK_AMD_DEFINE_RESULT__ = (function () {return tinycolor;}).call(exports, __webpack_require__, exports, module),
+		__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 }
 // Browser: Expose to window
-else {
-    window.tinycolor = tinycolor;
-}
+else {}
 
 })(Math);
 
-},{}],17:[function(require,module,exports){
+
+/***/ }),
+
+/***/ "./node_modules/trim/index.js":
+/*!************************************!*\
+  !*** ./node_modules/trim/index.js ***!
+  \************************************/
+/***/ ((module, exports) => {
+
 
 exports = module.exports = trim;
 
@@ -2508,4 +3461,78 @@ exports.right = function(str){
   return str.replace(/\s*$/, '');
 };
 
-},{}]},{},[2]);
+
+/***/ })
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+(() => {
+/*!**************************!*\
+  !*** ./client/client.js ***!
+  \**************************/
+var registerBpmnJSPlugin = (__webpack_require__(/*! camunda-modeler-plugin-helpers */ "./node_modules/camunda-modeler-plugin-helpers/index.js").registerBpmnJSPlugin);
+
+var ColorPlugin = __webpack_require__(/*! ./ColorPlugin */ "./client/ColorPlugin.js");
+
+registerBpmnJSPlugin(ColorPlugin);
+
+})();
+
+/******/ })()
+;

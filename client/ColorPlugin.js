@@ -2,6 +2,7 @@
 
 var domify = require('min-dom/lib/domify');
 var ColorPicker = require('simple-color-picker');
+var getDi = require('bpmn-js/lib/util/ModelUtil').getDi;
 
 function ColorPlugin(eventBus, bpmnRules, editorActions, canvas, commandStack) {
   var self = this;
@@ -23,12 +24,10 @@ function ColorPlugin(eventBus, bpmnRules, editorActions, canvas, commandStack) {
 }
 
 ColorPlugin.prototype._getColor = function(element) {
-  if (element != null && element.businessObject != null) {
-    var businessObject = element.businessObject;
-    if (businessObject.di != null && businessObject.di.fill != null) {
-      return businessObject.di.fill;
-      self.colorPicker.setColor(businessObject.di.fill);
-    }
+  if (element != null) {
+    var di = getDi(element);
+
+    return di && di.get('fill') || null;
   }
   return null;
 }
