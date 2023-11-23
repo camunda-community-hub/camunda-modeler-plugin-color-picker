@@ -29,6 +29,6 @@
     "min-dom": "^0.2.0",
     "simple-color-picker": "^0.1.2",
     "webpack": "^5.74.0",
-    "webpack-cli": "^4.10.0"
+    "webpack-cli": "^5.0.0"
   }
 }
